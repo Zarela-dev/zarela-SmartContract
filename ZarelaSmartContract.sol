@@ -247,11 +247,11 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
             }
             if (allAngelsAddresses[indexCounter] == address(0)) {
                 lastRewardableIndex = indexCounter;
-                _Reward();
+                _reward();
                 indexCounter+=2;
                 todayContributionsCount++;
             } else if (lastRewardableIndex != indexOfAddressPendingReward) {
-                _Reward();
+                _reward();
                 indexCounter++;
             } else {
                 indexCounter++;
@@ -270,7 +270,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         emit Contributed(msg.sender ,_orderId ,_orderOwner ,zarelaDifficultyOfDay);
     }
     
-    function _Reward() private {
+    function _reward() private {
         uint temporary = indexOfAddressPendingReward;
         if (zarelaDifficultyOfDay == 128) {
             for (uint i= temporary; i < temporary + zarelaDifficultyOfDay; i++) {
@@ -329,7 +329,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     }
     
     
-    function ConfirmContributer(
+    function confirmContributer(
         uint _orderId,
         uint[]memory _Index
     )
@@ -353,7 +353,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         }
     }
     
-    function GetOrderFiles(
+    function getOrderData(
         uint _orderId
     )
         public
@@ -372,7 +372,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
             );
     }
     
-    function ShowFile(
+    function ownerSpecificData(
         uint _orderId
         )
         public 
@@ -386,7 +386,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         return (orderDataMap[_orderId].ipfsHash);
     }
     
-    function Order_Details()
+    function orderResult()
         public view returns
     (uint[]memory _ownedOrders,
     uint[]memory _contributedOrders)
@@ -397,7 +397,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         );
     }
     
-    function OrderSize()
+    function orderSize()
         public view returns (uint){
         return orders.length;
     }
