@@ -29,8 +29,8 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         uint Order_ID
         );
    
-    uint public maxUserDailyReward = 50000000000; // Max User Daily Reward As BIOBIT + 50 + _decimals
-    uint public totalTokenReleaseDaily = 14400000000000; // Total Tokens That Release From Zarela Reward Pool Per Day
+    uint public maxUserDailyReward = 50000000000; // Max User Daily Reward As BIOBIT + 50 + _decimals 
+    uint public totalTokenReleaseDaily = 14400000000000; // Total Tokens That Release From Zarela Reward Pool Per Day 
     
     address payable[] public allAngelsAddresses; // All Angels Addresses Who Contributes In Zarela
     uint public halvingCounter; // Halving Counter
@@ -43,7 +43,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     uint public paymentDay; // Payment Day
     uint public todayContributionsCount; // Count Of Today Contributions
     uint[] public dailyContributionsCount; //  Count Of Daily Contributions
-    uint public rewardableAmountPerDay; // The Amount of Tokens That Can Be Rewarded Per Day
+    uint public bankBalance; // The Amount of Tokens Remained and Can Add to Rewarding for Next Day
     uint[] public remainedDailyTokens; // Daily Token Remained
     uint indexOfZeroDailyTokens; // Index Of remainedDailyTokens Array That Before Day There is No Token
     uint public dayOfTokenBurning; // The Day That Token Will be Burned
@@ -90,7 +90,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         uint[] ownedOrders; // Array Of Order ids That User is Owned
     }
     
-    mapping(uint => OrderData) public orderDataMap;
+    mapping(uint => OrderData) orderDataMap;
     mapping(address => User) public userMap;
     Order[] public orders; 
     Category[] public categories;
@@ -186,34 +186,34 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
                 }
                 if ( _balances[address(this)] >= totalTokenReleaseDaily) {
                     _balances[address(this)] = _balances[address(this)] - totalTokenReleaseDaily;
-                } else if (rewardableAmountPerDay > 0 && _balances[address(this)] < totalTokenReleaseDaily) {
-                    rewardableAmountPerDay+= totalTokenReleaseDaily;
+                } else if (bankBalance > 0 && _balances[address(this)] < totalTokenReleaseDaily) {
+                    bankBalance+= totalTokenReleaseDaily;
                     totalTokenReleaseDaily = 0; 
                 } else {
                     totalTokenReleaseDaily = 0;
                     isZarelaEnd = true;
                 }
                 
-                rewardableAmountPerDay+=(totalTokenReleaseDaily);
+                bankBalance+=(totalTokenReleaseDaily);
                 remainedDailyTokens.push(totalTokenReleaseDaily);
                 
-                if (zarelaDayCounter >= 45) { // 45 days
-                    rewardableAmountPerDay = rewardableAmountPerDay - (remainedDailyTokens[dayOfTokenBurning]);
+                if (zarelaDayCounter >= 44) { // 45 days
+                    bankBalance = bankBalance - (remainedDailyTokens[dayOfTokenBurning]);
                     burnedTokensPerDay.push(remainedDailyTokens[dayOfTokenBurning]);
                     remainedDailyTokens[dayOfTokenBurning] = 0;
                     dayOfTokenBurning++;
                 }
                 
-                dailyBalance.push(rewardableAmountPerDay);
+                dailyBalance.push(bankBalance);
                 
-                if (maxUserDailyReward * dailyContributionsCount[zarelaDayCounter] >= rewardableAmountPerDay) {
-                    dailyBalance[zarelaDayCounter] = rewardableAmountPerDay;
-                    dailyRewardPerContributor.push(rewardableAmountPerDay/dailyContributionsCount[zarelaDayCounter]);
-                    rewardableAmountPerDay = 0;
+                if (maxUserDailyReward * dailyContributionsCount[zarelaDayCounter] >= bankBalance) {
+                    dailyBalance[zarelaDayCounter] = bankBalance;
+                    dailyRewardPerContributor.push(bankBalance/dailyContributionsCount[zarelaDayCounter]);
+                    bankBalance = 0;
                 } else {
                     dailyBalance[zarelaDayCounter] = maxUserDailyReward * dailyContributionsCount[zarelaDayCounter];
                     dailyRewardPerContributor.push(maxUserDailyReward);
-                    rewardableAmountPerDay = rewardableAmountPerDay - (maxUserDailyReward * dailyContributionsCount[zarelaDayCounter]);
+                    bankBalance = bankBalance - (maxUserDailyReward * dailyContributionsCount[zarelaDayCounter]);
                 }
                
                 uint tempPrice = dailyBalance[zarelaDayCounter];
@@ -382,7 +382,8 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
             );
     }
     
-    /// @dev Receive angels' signals by entering the orderId 
+    /// @dev Receive angels' signals by entering the orderId and just order's owner can access.
+    /// @return ipfs hash of signals in this order
     function ownerSpecificData(
         uint _orderId
         )
@@ -398,6 +399,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     }
     
     /// @dev Check the orders registered and contributed by the user (angel or mage) who calls the function
+    /// @return _ownedOrders and _contributedOrders
     function orderResult()
         public view returns
     (uint[]memory _ownedOrders,
@@ -410,6 +412,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     }
     
     /// @dev Total number of orders registered in Zarela
+    /// @return length of all orders that registered in zarela
     function orderSize()
         public view returns (uint){
         return orders.length;
