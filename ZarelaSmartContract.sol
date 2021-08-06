@@ -4,6 +4,8 @@ pragma solidity >=0.6.0 <0.8.0;
 import "./ERC20.sol";
 import "./ERC20Burnable.sol";
 
+/// @author Zarela Team 
+/// @title Decentralized marketplace platform for peer-to-peer transferring of Biosignals
 contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     
     
@@ -110,6 +112,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         _;
     }
     
+    /// @dev make any kind of request that may be answered with a file.This function is only called by Mage 
     function registerNewOrder(
         string memory _orderTitle,
         string memory _description,
@@ -152,6 +155,9 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         emit Transfer(msg.sender, address(this), (_tokenPerContributor * _totalContributors));
     }
     
+    
+    /// @dev Send the angel signal to mage and save then signal IPFS Hash in the block.Also, due to the difficulty of the Zarela network,
+    /// each user pays the Reward to a number of people in the non-Reward queue
     function contribute(
         uint _orderId,
         address _orderOwner,
@@ -270,6 +276,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         emit Contributed(msg.sender ,_orderId ,_orderOwner ,zarelaDifficultyOfDay);
     }
     
+    /// @dev Calculate and pay the Reward
     function _reward() private {
         uint temporary = indexOfAddressPendingReward;
         if (zarelaDifficultyOfDay == 128) {
@@ -328,7 +335,8 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         }
     }
     
-    
+    /// @dev Confirm the signals sent by angels only by Requester (Mage) of that signal.
+    /// The selection of files is based on their index.
     function confirmContributer(
         uint _orderId,
         uint[]memory _Index
@@ -353,6 +361,8 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         }
     }
     
+    /// @dev retrieves the value of each the specefic order by `_orderId`
+    /// @return the contributors addresses , Time to send that signal by the angel , Status (true , false) of confirmation , Zarela day sent that signal
     function getOrderData(
         uint _orderId
     )
@@ -372,6 +382,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
             );
     }
     
+    /// @dev Receive angels' signals by entering the orderId 
     function ownerSpecificData(
         uint _orderId
         )
@@ -386,6 +397,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         return (orderDataMap[_orderId].ipfsHash);
     }
     
+    /// @dev Check the orders registered and contributed by the user (angel or mage) who calls the function
     function orderResult()
         public view returns
     (uint[]memory _ownedOrders,
@@ -397,6 +409,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         );
     }
     
+    /// @dev Total number of orders registered in Zarela
     function orderSize()
         public view returns (uint){
         return orders.length;
