@@ -65,11 +65,6 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         uint totalContributorsRemain; // Total Contributors Remain
         uint countOfRegisteredContributions; // Count of Registered Contributions
         uint registrationTime; // Order Registration Time
-        string encryptionKey;  // AES Encryption Key
-    }
-    
-    struct Category {
-        uint orderId; // Order ID
         string zarelaCategory; // Zarela Category (Hashtags)
         uint businessCategory; // Business Category
     }
@@ -78,6 +73,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         uint orderId; // Order ID
         uint[] dataRegistrationTime;  // Data Registration Time
         string[] ipfsHash; //  Hash Of Data (Stored In IPFS)
+        string[] encryptionKey; // AES Encryption Key
         address[] contributorAddresses; // Array Of Contributors addresses
         bool[] isConfirmedByMage; // is Confirmed By Mage?
         uint[] zarelaDay; // in Which Zarela Day This Data is Imported
@@ -93,8 +89,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     mapping(uint => OrderData) orderDataMap;
     mapping(address => User) public userMap;
     Order[] public orders; 
-    Category[] public categories;
-    
+
     modifier onlyRequester(uint _Order_Number) {
         Order storage myorder = orders[_Order_Number];
         require(myorder.orderOwner == msg.sender, "You Are Not Owner");
@@ -113,14 +108,13 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     }
     
     /// @dev make any kind of request that may be answered with a file.This function is only called by Mage 
-    function registerNewOrder(
+    function submitNewOrder(
         string memory _orderTitle,
         string memory _description,
         string memory _zPaper,
         uint _tokenPerContributor,
         uint _totalContributors,
         string memory _zarelaCategory
-        ,string memory _encryptionKey
         ,uint _businessCategory
     )
         public
@@ -140,17 +134,11 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
                 _totalContributors,
                 0,
                 block.timestamp,
-                _encryptionKey
-                )
-            );
-        userMap[msg.sender].ownedOrders.push(orderId);
-        categories.push(
-            Category(
-                orderId,
                 _zarelaCategory,
                 _businessCategory
                 )
             );
+        userMap[msg.sender].ownedOrders.push(orderId);
         emit OrderRegistered(msg.sender, orderId);
         emit Transfer(msg.sender, address(this), (_tokenPerContributor * _totalContributors));
     }
@@ -161,7 +149,8 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     function contribute(
         uint _orderId,
         address _orderOwner,
-        string memory _ipfsHash
+        string memory _ipfsHash,
+        string memory _encryptionKey
     )
         public 
         checkOrderId (_orderId)
@@ -267,6 +256,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         orderDataMap[_orderId].orderId = _orderId;
         orders[_orderId].countOfRegisteredContributions++;
         orderDataMap[_orderId].ipfsHash.push(_ipfsHash);
+        orderDataMap[_orderId].encryptionKey.push(_encryptionKey);
         orderDataMap[_orderId].contributorAddresses.push(msg.sender);
         orderDataMap[_orderId].isConfirmedByMage.push(false);
         orderDataMap[_orderId].dataRegistrationTime.push(block.timestamp);
@@ -337,7 +327,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     
     /// @dev Confirm the signals sent by angels only by Requester (Mage) of that signal.
     /// The selection of files is based on their index.
-    function confirmContributer(
+    function confirmContributor(
         uint _orderId,
         uint[]memory _Index
     )
@@ -383,7 +373,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     }
     
     /// @dev Receive angels' signals by entering the orderId and just order's owner can access.
-    /// @return ipfs hash of signals in this order
+    /// @return ipfsHash,encryptionKey
     function ownerSpecificData(
         uint _orderId
         )
@@ -392,10 +382,11 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         checkOrderId(_orderId) 
         view returns
         (
+            string[] memory,
             string[] memory
         )
     {
-        return (orderDataMap[_orderId].ipfsHash);
+        return (orderDataMap[_orderId].ipfsHash,orderDataMap[_orderId].encryptionKey);
     }
     
     /// @dev Check the orders registered and contributed by the user (angel or mage) who calls the function
