@@ -65,9 +65,13 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         uint totalContributorsRemain; // Total Contributors Remain
         uint countOfRegisteredContributions; // Count of Registered Contributions
         uint registrationTime; // Order Registration Time
+        string accessPublicKey; // Encryption Owner Public Key 
+    }
+    
+    struct Category{
         string zarelaCategory; // Zarela Category (Hashtags)
         uint businessCategory; // Business Category
-    }
+    } 
     
     struct OrderData {
         uint orderId; // Order ID
@@ -88,7 +92,8 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     
     mapping(uint => OrderData) orderDataMap;
     mapping(address => User) public userMap;
-    Order[] public orders; 
+    Order[] public orders;
+    Category[]public Categories;
 
     modifier onlyRequester(uint _Order_Number) {
         Order storage myorder = orders[_Order_Number];
@@ -114,8 +119,9 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         string memory _zPaper,
         uint _tokenPerContributor,
         uint _totalContributors,
-        string memory _zarelaCategory
-        ,uint _businessCategory
+        string memory _zarelaCategory,
+        uint _businessCategory,
+        string memory _accessPublicKey
     )
         public
     {
@@ -134,11 +140,16 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
                 _totalContributors,
                 0,
                 block.timestamp,
-                _zarelaCategory,
-                _businessCategory
+                _accessPublicKey
                 )
             );
         userMap[msg.sender].ownedOrders.push(orderId);
+        Categories.push(
+            Category(
+                    _zarelaCategory,
+                    _businessCategory
+                )
+            );
         emit OrderRegistered(msg.sender, orderId);
         emit Transfer(msg.sender, address(this), (_tokenPerContributor * _totalContributors));
     }
