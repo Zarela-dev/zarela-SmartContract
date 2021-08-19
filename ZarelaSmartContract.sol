@@ -11,28 +11,33 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     
     constructor() {
         _mint(msg.sender , 4000000000000000);
-        _mint(address(this) , 16000000000000000);
+        _mint(address(this) , 17000000000000000);
     }
 
 
-    event OrderRegistered(
+    event orderRegistered(
         address owner,
-        uint Order_ID
+        uint orderId
         );
-    event Contributed(
-        address Contributer,
-        uint Order_ID,
-        address Requester,
+    event contributed(
+        address contributor,
+        address labrotory,
+        uint orderId,
+        address mage,
         uint difficulty
         );
-    event OrderFinished(
-        uint Order_ID
+    event orderFinished(
+        uint orderId
+        );
+    event signalsApproved(
+        uint orderId,
+        uint confirmCount
         );
    
-    uint public maxUserDailyReward = 50000000000; // Max User Daily Reward As BIOBIT + 50 + _decimals 
-    uint public totalTokenReleaseDaily = 14400000000000; // Total Tokens That Release From Zarela Reward Pool Per Day 
+    uint public maxUserDailyReward = 50000000000 ; // Max User Daily Reward As BIOBIT + 50 + _decimals 
+    uint public totalTokenReleaseDaily = 14400000000000 ; // Total Tokens That Release From Zarela Reward Pool Per Day 
     
-    address payable[] public allAngelsAddresses; // All Angels Addresses Who Contributes In Zarela
+    address payable[] public paymentQueue; // All addresses pending reward (angels or labrotory)
     uint public halvingCounter; // Halving Counter
     uint public countDown24Hours = block.timestamp; // Starting 24 hours Timer By Block Timestamp (From Deploy Zarela)
     uint public dayCounterOf18Months; // Day Counter Of 18 Months (547 days  =  18 months )
@@ -45,7 +50,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     uint[] public dailyContributionsCount; //  Count Of Daily Contributions
     uint public bankBalance; // The Amount of Tokens Remained and Can Add to Rewarding for Next Day
     uint[] public remainedDailyTokens; // Daily Token Remained
-    uint indexOfZeroDailyTokens; // Index Of remainedDailyTokens Array That Before Day There is No Token
+    uint public indexOfZeroDailyTokens; // Index Of remainedDailyTokens Array That Before Day There is No Token
     uint public dayOfTokenBurning; // The Day That Token Will be Burned
     uint public zarelaDayCounter; // The Day Count Of Zarela Age
     uint[] public burnedTokensPerDay; // Array Of Burned Tokens Per Day
@@ -59,6 +64,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         string orderTitle; // Order Title
         address orderOwner; // Order Owner
         uint tokenPerContributor; // Allcoated Biobit Per Contributor
+        uint tokenPerLaboratory;  // Allcoated Biobit Per Laboratory
         uint totalContributors; // Total Contributors
         string zPaper; // zPaper
         string description; // Description Of Order
@@ -76,9 +82,11 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     struct OrderData {
         uint orderId; // Order ID
         uint[] dataRegistrationTime;  // Data Registration Time
-        string[] ipfsHash; //  Hash Of Data (Stored In IPFS)
-        string[] encryptionKey; // AES Encryption Key
+        string[] ipfsHash; //  IPFS Hash Of Data (Stored In IPFS)
+        string[] encryptionKey; // IPFS Hash of  Encrypted AES Secret Key (Stored In IPFS)
         address[] contributorAddresses; // Array Of Contributors addresses
+        address[] laboratoryAddresses; // Array Of laboratory addresses
+        bool[] whoGainedReward; // Array Of addresses that Gained the Reward  (true means laboratory and false means angel)
         bool[] isConfirmedByMage; // is Confirmed By Mage?
         uint[] zarelaDay; // in Which Zarela Day This Data is Imported
     }
@@ -90,7 +98,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         uint[] ownedOrders; // Array Of Order ids That User is Owned
     }
     
-    mapping(uint => OrderData) orderDataMap;
+    mapping(uint => OrderData) public orderDataMap;
     mapping(address => User) public userMap;
     Order[] public orders;
     Category[]public Categories;
@@ -113,11 +121,12 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     }
     
     /// @dev make any kind of request that may be answered with a file.This function is only called by Mage 
-    function submitNewOrder(
+    function submitNewRequest(
         string memory _orderTitle,
         string memory _description,
         string memory _zPaper,
         uint _tokenPerContributor,
+        uint _tokenPerLaboratory,
         uint _totalContributors,
         string memory _zarelaCategory,
         uint _businessCategory,
@@ -126,7 +135,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         public
     {
         require(_balances[msg.sender] >= (_tokenPerContributor * _totalContributors) , "Your Token Is Not Enough");
-        ERC20.transfer(address(this),(_tokenPerContributor * _totalContributors));
+        ERC20.transfer(address(this),((_tokenPerContributor + _tokenPerLaboratory) * _totalContributors));
         uint orderId = orders.length;
         orders.push(
             Order(
@@ -134,6 +143,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
                 _orderTitle,
                 msg.sender,
                 _tokenPerContributor,
+                _tokenPerLaboratory,
                 _totalContributors,
                 _zPaper,
                 _description,
@@ -150,8 +160,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
                     _businessCategory
                 )
             );
-        emit OrderRegistered(msg.sender, orderId);
-        emit Transfer(msg.sender, address(this), (_tokenPerContributor * _totalContributors));
+        emit orderRegistered(msg.sender, orderId);
     }
     
     
@@ -159,6 +168,8 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     /// each user pays the Reward to a number of people in the non-Reward queue
     function contribute(
         uint _orderId,
+        address _contributorAddress,
+        address _laboratoryAddress,
         address _orderOwner,
         string memory _ipfsHash,
         string memory _encryptionKey
@@ -166,26 +177,30 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         public 
         checkOrderId (_orderId)
         notNull(_orderOwner)
+        notNull(_contributorAddress)
+        notNull(_laboratoryAddress)
+        
     {
         require(orders[_orderId].totalContributorsRemain != 0 ,"Order Was Finished");
         require(_orderOwner ==  orders[_orderId].orderOwner , "Requester Address Was Not Entered Correctly");
-        
+        require(msg.sender == _laboratoryAddress || msg.sender == _contributorAddress , "You Are Not Angel or Laboratory");
         if (isZarelaEnd != true) {
             if (block.timestamp < countDown24Hours + 24 hours) {
-                allAngelsAddresses.push(msg.sender);
+                paymentQueue.push(msg.sender);
                 todayContributionsCount++;
             } else {
-                allAngelsAddresses.push(address(0));
-                allAngelsAddresses.push(msg.sender);
+                paymentQueue.push(address(0));
+                paymentQueue.push(msg.sender);
                 dailyContributionsCount.push(todayContributionsCount);
-                if (dayCounterOf18Months >= 547) { //18 month
+                if (dayCounterOf18Months >= 589) { //18 month
                     maxUserDailyReward = maxUserDailyReward / 2 ;
                     totalTokenReleaseDaily = totalTokenReleaseDaily / 2 ;
                     halvingCounter++;
                     dayCounterOf18Months = 0 ;
                 }
-                if ( _balances[address(this)] >= totalTokenReleaseDaily) {
+                if (_balances[address(this)] >= totalTokenReleaseDaily) {
                     _balances[address(this)] = _balances[address(this)] - totalTokenReleaseDaily;
+                    bankBalance+=(totalTokenReleaseDaily);
                 } else if (bankBalance > 0 && _balances[address(this)] < totalTokenReleaseDaily) {
                     bankBalance+= totalTokenReleaseDaily;
                     totalTokenReleaseDaily = 0; 
@@ -194,7 +209,6 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
                     isZarelaEnd = true;
                 }
                 
-                bankBalance+=(totalTokenReleaseDaily);
                 remainedDailyTokens.push(totalTokenReleaseDaily);
                 
                 if (zarelaDayCounter >= 44) { // 45 days
@@ -251,7 +265,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
                 countDown24Hours = block.timestamp;
     
             }
-            if (allAngelsAddresses[indexCounter] == address(0)) {
+            if (paymentQueue[indexCounter] == address(0)) {
                 lastRewardableIndex = indexCounter;
                 _reward();
                 indexCounter+=2;
@@ -263,18 +277,24 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
                 indexCounter++;
             }
         }
+        if(msg.sender == _laboratoryAddress){
+            orderDataMap[_orderId].whoGainedReward.push(true);
+        }else{
+            orderDataMap[_orderId].whoGainedReward.push(false);
+        }
         
         orderDataMap[_orderId].orderId = _orderId;
         orders[_orderId].countOfRegisteredContributions++;
         orderDataMap[_orderId].ipfsHash.push(_ipfsHash);
         orderDataMap[_orderId].encryptionKey.push(_encryptionKey);
-        orderDataMap[_orderId].contributorAddresses.push(msg.sender);
+        orderDataMap[_orderId].contributorAddresses.push(_contributorAddress);
+        orderDataMap[_orderId].laboratoryAddresses.push(_laboratoryAddress);
         orderDataMap[_orderId].isConfirmedByMage.push(false);
         orderDataMap[_orderId].dataRegistrationTime.push(block.timestamp);
-        userMap[msg.sender].contributedOrders.push(_orderId);
+        userMap[_contributorAddress].contributedOrders.push(_orderId);
         orderDataMap[_orderId].zarelaDay.push(zarelaDayCounter);
 
-        emit Contributed(msg.sender ,_orderId ,_orderOwner ,zarelaDifficultyOfDay);
+        emit contributed(_contributorAddress , _laboratoryAddress ,_orderId ,_orderOwner ,zarelaDifficultyOfDay);
     }
     
     /// @dev Calculate and pay the Reward
@@ -286,13 +306,13 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
                     break;
                 }
                 
-                addressOfPendingReward = allAngelsAddresses[i];
+                addressOfPendingReward = paymentQueue[i];
                 
                 if (addressOfPendingReward == address(0)) {
                     paymentDay++;
                     i++;
                     indexOfAddressPendingReward++;
-                    addressOfPendingReward = allAngelsAddresses[i];
+                    addressOfPendingReward = paymentQueue[i];
                 }
                 
                 _balances[addressOfPendingReward] = _balances[addressOfPendingReward] + ((dailyRewardPerContributor[paymentDay]));
@@ -306,13 +326,13 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
                     break;
                 }
                 
-                addressOfPendingReward = allAngelsAddresses[i];
+                addressOfPendingReward = paymentQueue[i];
                 
                 if (addressOfPendingReward == address(0)) {
                     paymentDay++;
                     i++;
                     indexOfAddressPendingReward++;
-                    addressOfPendingReward = allAngelsAddresses[i];
+                    addressOfPendingReward = paymentQueue[i];
                 }
                 
                 _balances[addressOfPendingReward] = _balances[addressOfPendingReward] + ((dailyRewardPerContributor[paymentDay]));
@@ -321,12 +341,12 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
             }
         } else if ((lastRewardableIndex - temporary) < 16) {
             for (uint i = temporary ; i < lastRewardableIndex ; i++) {
-                addressOfPendingReward = allAngelsAddresses[i];
+                addressOfPendingReward = paymentQueue[i];
                 if (addressOfPendingReward == address(0)) {
                     paymentDay++;
                     i++;
                     indexOfAddressPendingReward++;
-                    addressOfPendingReward = allAngelsAddresses[i];
+                    addressOfPendingReward = paymentQueue[i];
                 }
                 
                 _balances[addressOfPendingReward] = _balances[addressOfPendingReward] + ((dailyRewardPerContributor[paymentDay]));
@@ -340,26 +360,29 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     /// The selection of files is based on their index.
     function confirmContributor(
         uint _orderId,
-        uint[]memory _Index
+        uint[]memory _index
     )
         public 
         onlyRequester (_orderId)
         checkOrderId(_orderId)
     {
         Order storage myorder = orders[_orderId];
-        require(_Index.length <= myorder.totalContributorsRemain,"The number of entries is more than allowed");
+        require(_index.length <= myorder.totalContributorsRemain,"The number of entries is more than allowed");
         require(myorder.totalContributorsRemain != 0,"Your Order Is Done, And You Sent All of Rewards to Users");
-        myorder.totalContributorsRemain = myorder.totalContributorsRemain - (_Index.length);
+        myorder.totalContributorsRemain = myorder.totalContributorsRemain - (_index.length);
+        for (uint i;i < _index.length ; i++) {
+            _balances[address(this)] = _balances[address(this)] - (myorder.tokenPerContributor + myorder.tokenPerLaboratory);
+            _balances[orderDataMap[_orderId].contributorAddresses[_index[i]]] = _balances[orderDataMap[_orderId].contributorAddresses[_index[i]]] + (myorder.tokenPerContributor);
+            _balances[orderDataMap[_orderId].laboratoryAddresses[_index[i]]] = _balances[orderDataMap[_orderId].laboratoryAddresses[_index[i]]] + (myorder.tokenPerLaboratory);
+            userMap[orderDataMap[_orderId].contributorAddresses[_index[i]]].tokenGainedFromMages+=(myorder.tokenPerContributor);
+            userMap[orderDataMap[_orderId].laboratoryAddresses[_index[i]]].tokenGainedFromMages+=(myorder.tokenPerLaboratory);
+            orderDataMap[_orderId].isConfirmedByMage[_index[i]] = true;
+        }
         
-        for (uint i;i < _Index.length ; i++) {
-            _balances[address(this)] = _balances[address(this)] - (myorder.tokenPerContributor);
-            _balances[orderDataMap[_orderId].contributorAddresses[_Index[i]]] = _balances[orderDataMap[_orderId].contributorAddresses[_Index[i]]] + (myorder.tokenPerContributor);
-            userMap[orderDataMap[_orderId].contributorAddresses[_Index[i]]].tokenGainedFromMages+=(myorder.tokenPerContributor);
-            orderDataMap[_orderId].isConfirmedByMage[_Index[i]] = true;
-        }
         if (myorder.totalContributorsRemain == 0) {
-            emit OrderFinished(_orderId);
+            emit orderFinished(_orderId);
         }
+        emit signalsApproved(_orderId,_index.length);
     }
     
     /// @dev retrieves the value of each the specefic order by `_orderId`
@@ -371,13 +394,17 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         checkOrderId (_orderId)
         view returns (
             address[] memory,
+            address[] memory,
             uint[]memory,
             bool[]memory,
+            bool[] memory,
             uint[] memory)
     {
         return (
             orderDataMap[_orderId].contributorAddresses,
+            orderDataMap[_orderId].laboratoryAddresses,
             orderDataMap[_orderId].dataRegistrationTime,
+            orderDataMap[_orderId].whoGainedReward,
             orderDataMap[_orderId].isConfirmedByMage,
             orderDataMap[_orderId].zarelaDay
             );
