@@ -10,7 +10,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     
     
     constructor() {
-        _mint(msg.sender , 4000000000000000);
+        _mint(msg.sender , 3000000000000000);
         _mint(address(this) , 17000000000000000);
     }
 
@@ -116,7 +116,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     }
     
     modifier notNull(address _address) {
-        require(address(0) != _address, "Send to the zero address");
+        require(address(0) != _address, "Send To The Zero Address");
         _;
     }
     
@@ -183,7 +183,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     {
         require(orders[_orderId].totalContributorsRemain != 0 ,"Order Was Finished");
         require(_orderOwner ==  orders[_orderId].orderOwner , "Requester Address Was Not Entered Correctly");
-        require(msg.sender == _laboratoryAddress || msg.sender == _contributorAddress , "You Are Not Angel or Laboratory");
+        require(msg.sender == _laboratoryAddress || msg.sender == _contributorAddress , "You Are Not Angel Or Laboratory");
         if (isZarelaEnd != true) {
             if (block.timestamp < countDown24Hours + 24 hours) {
                 paymentQueue.push(msg.sender);
@@ -386,7 +386,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     }
     
     /// @dev retrieves the value of each the specefic order by `_orderId`
-    /// @return the contributors addresses , Time to send that signal by the angel , Status (true , false) of confirmation , Zarela day sent that signal
+    /// @return the contributors addresses , the Laboratory addresses , Time to send that signal by the angel , Laboratory or angel gained reward? , Status (true , false) of confirmation , Zarela day sent that signal
     function getOrderData(
         uint _orderId
     )
