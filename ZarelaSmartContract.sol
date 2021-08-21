@@ -451,8 +451,8 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     }
     /// @dev Release 100 tokens from reward pool for people visit guide , this function just exist on our testnet 
     function earnTestToken()public {
-        _balances[address(this)] = _balances[address(this)] - 100;
-        _balances[msg.sender] = _balances[msg.sender] + 100;
-        emit Transfer(address(this) , msg.sender , 100);
+        _balances[address(this)] = _balances[address(this)] - 100000000000;
+        _balances[msg.sender] = _balances[msg.sender] + 100000000000;
+        emit Transfer(address(this) , msg.sender , 100000000000);
     }
 }
