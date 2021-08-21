@@ -1,0 +1,59 @@
+{
+	"compiler": {
+		"version": "0.7.6+commit.7338295f"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "currentTime",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"Zarela After Unit Test/IClock.sol": "IClock"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"Zarela After Unit Test/IClock.sol": {
+			"keccak256": "0x5832bc3c263b51c9e50dbc0838501b910161c8cfeb3f8d01e4120066fec07c1d",
+			"license": "GPL-3.0",
+			"urls": [
+				"bzz-raw://6c17a5ddd7e76d2b165e2f15b733c9343ec8d03ae3bba9cb85ee2204c928a0bc",
+				"dweb:/ipfs/QmWUP2SQnBvxMEp3uW6tzJHPBxWHT6EPjRjKozpEHsN3iT"
+			]
+		}
+	},
+	"version": 1
+}

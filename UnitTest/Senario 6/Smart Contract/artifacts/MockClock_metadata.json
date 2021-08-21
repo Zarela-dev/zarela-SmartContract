@@ -1,0 +1,114 @@
+{
+	"compiler": {
+		"version": "0.7.6+commit.7338295f"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "addOneDay",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "currentTime",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "decTime",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "incTime",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_time",
+						"type": "uint256"
+					}
+				],
+				"name": "setTime",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "time",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"Zarela After Unit Test/MockClock.sol": "MockClock"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"Zarela After Unit Test/IClock.sol": {
+			"keccak256": "0x5832bc3c263b51c9e50dbc0838501b910161c8cfeb3f8d01e4120066fec07c1d",
+			"license": "GPL-3.0",
+			"urls": [
+				"bzz-raw://6c17a5ddd7e76d2b165e2f15b733c9343ec8d03ae3bba9cb85ee2204c928a0bc",
+				"dweb:/ipfs/QmWUP2SQnBvxMEp3uW6tzJHPBxWHT6EPjRjKozpEHsN3iT"
+			]
+		},
+		"Zarela After Unit Test/MockClock.sol": {
+			"keccak256": "0x2df5e208ca3fde7b1f9a2346a1a98c311917744c31bc623cc8776fd15c7edb28",
+			"license": "GPL-3.0",
+			"urls": [
+				"bzz-raw://0fa93ab4d0f4814ca25c8858a992c860e55b4e9d737bbb448c717e111261e96e",
+				"dweb:/ipfs/QmPkPDSQnidc5eYcDDtD3nY1wgBrRKamZJpfma3RyTbMbQ"
+			]
+		}
+	},
+	"version": 1
+}

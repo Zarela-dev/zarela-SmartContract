@@ -1,0 +1,45 @@
+{
+	"compiler": {
+		"version": "0.7.6+commit.7338295f"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"Zarela After Unit Test/Context.sol": "Context"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"Zarela After Unit Test/Context.sol": {
+			"keccak256": "0xa563161d1e419bcfc54e95d6ff021bc89dbd22844ed7ca8c52d7d53739e6420d",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://aa618597728d983bc1a1d5d78678aefb13382796a21a3f0635ec4ccc13cdfe34",
+				"dweb:/ipfs/QmV1eSXyr3x87FyLy9fz2jTMYTmWyrdqvW78umCFueYPJF"
+			]
+		}
+	},
+	"version": 1
+}

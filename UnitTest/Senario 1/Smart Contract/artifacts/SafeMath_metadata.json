@@ -1,0 +1,45 @@
+{
+	"compiler": {
+		"version": "0.7.6+commit.7338295f"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"Zarela After Unit Test/SafeMath.sol": "SafeMath"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"Zarela After Unit Test/SafeMath.sol": {
+			"keccak256": "0x0053201fb905956718b86b86f768150705dc78b381256d56d7addd6c67cd9478",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://ebad7ebfba3cac53e70f32116e6c49c7194fe99242d7d8dd6f9a02c8ba674e22",
+				"dweb:/ipfs/QmUUv2tpkwJTTCVAy7MAnzNH4c378376g5Vyz6D4HTvkGP"
+			]
+		}
+	},
+	"version": 1
+}
