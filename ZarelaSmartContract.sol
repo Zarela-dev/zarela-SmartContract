@@ -8,12 +8,11 @@ import "./ERC20Burnable.sol";
 /// @title Decentralized marketplace platform for peer-to-peer transferring of Biosignals
 contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     
-    
+    // token distribution 17m reward pool and 3m other(2m team , 1m fundraising)
     constructor() {
         _mint(msg.sender , 3000000000000000);
         _mint(address(this) , 17000000000000000);
     }
-
 
     event orderRegistered(
         address owner,
@@ -40,7 +39,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     address payable[] public paymentQueue; // All addresses pending reward (angels or labrotory)
     uint public halvingCounter; // Halving Counter
     uint public countDown24Hours = block.timestamp; // Starting 24 hours Timer By Block Timestamp (From Deploy Zarela)
-    uint public dayCounterOf18Months; // Day Counter Of 18 Months (547 days  =  18 months )
+    uint public dayCounterOf20Months; // Day Counter Of 20 Months (590 days  =  20 months )
     uint public indexCounter; // Index Of Entered Contributors Array 
     uint public lastRewardableIndex; // Index Of Last Person Who Should Get Reward Until Yesterday
     uint public indexOfAddressPendingReward; // Index Of allAngelsAddresses Array Pending For Reward
@@ -168,8 +167,9 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     /// each user pays the Reward to a number of people in the non-Reward queue
     function contribute(
         uint _orderId,
-        address _contributorAddress,
-        address _laboratoryAddress,
+        address payable _contributorAddress,
+        address payable _laboratoryAddress,
+        bool _whoGainReward,
         address _orderOwner,
         string memory _ipfsHash,
         string memory _encryptionKey
@@ -185,18 +185,26 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         require(_orderOwner ==  orders[_orderId].orderOwner , "Requester Address Was Not Entered Correctly");
         require(msg.sender == _laboratoryAddress || msg.sender == _contributorAddress , "You Are Not Angel Or Laboratory");
         if (isZarelaEnd != true) {
+            address payable rewardRecipientAddress;
+            if (_whoGainReward == true) {
+                rewardRecipientAddress = _contributorAddress;
+                orderDataMap[_orderId].whoGainedReward.push(true);
+            } else {
+                rewardRecipientAddress = _laboratoryAddress;
+                orderDataMap[_orderId].whoGainedReward.push(false);
+            }
             if (block.timestamp < countDown24Hours + 24 hours) {
-                paymentQueue.push(msg.sender);
+                paymentQueue.push(rewardRecipientAddress);
                 todayContributionsCount++;
             } else {
                 paymentQueue.push(address(0));
-                paymentQueue.push(msg.sender);
+                paymentQueue.push(rewardRecipientAddress);
                 dailyContributionsCount.push(todayContributionsCount);
-                if (dayCounterOf18Months >= 589) { //18 month
+                if (dayCounterOf20Months >= 589) { //20 month
                     maxUserDailyReward = maxUserDailyReward / 2 ;
                     totalTokenReleaseDaily = totalTokenReleaseDaily / 2 ;
                     halvingCounter++;
-                    dayCounterOf18Months = 0 ;
+                    dayCounterOf20Months = 0 ;
                 }
                 if (_balances[address(this)] >= totalTokenReleaseDaily) {
                     _balances[address(this)] = _balances[address(this)] - totalTokenReleaseDaily;
@@ -261,7 +269,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
                 
                 todayContributionsCount = 0;
                 zarelaDayCounter++;
-                dayCounterOf18Months++;
+                dayCounterOf20Months++;
                 countDown24Hours = block.timestamp;
     
             }
@@ -276,11 +284,6 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
             } else {
                 indexCounter++;
             }
-        }
-        if(msg.sender == _laboratoryAddress){
-            orderDataMap[_orderId].whoGainedReward.push(true);
-        }else{
-            orderDataMap[_orderId].whoGainedReward.push(false);
         }
         
         orderDataMap[_orderId].orderId = _orderId;
@@ -445,5 +448,11 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     function orderSize()
         public view returns (uint){
         return orders.length;
+    }
+    /// @dev Release 100 tokens from reward pool for people visit guide , this function just exist on our testnet 
+    function earnTestToken()public {
+        _balances[address(this)] = _balances[address(this)] - 100;
+        _balances[msg.sender] = _balances[msg.sender] + 100;
+        emit Transfer(address(this) , msg.sender , 100);
     }
 }
