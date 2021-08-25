@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: MIT
 pragma experimental ABIEncoderV2;
 pragma solidity >=0.6.0 <0.8.0;
 import "./ERC20.sol";
@@ -169,7 +169,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         uint _orderId,
         address payable _contributorAddress,
         address payable _laboratoryAddress,
-        bool _whoGainReward,
+        bool _isContributorGainReward, 
         address _orderOwner,
         string memory _ipfsHash,
         string memory _encryptionKey
@@ -186,7 +186,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         require(msg.sender == _laboratoryAddress || msg.sender == _contributorAddress , "You Are Not Angel Or Laboratory");
         if (isZarelaEnd != true) {
             address payable rewardRecipientAddress;
-            if (_whoGainReward == true) {
+            if (_isContributorGainReward == true) {
                 rewardRecipientAddress = _contributorAddress;
                 orderDataMap[_orderId].whoGainedReward.push(true);
             } else {
