@@ -93,7 +93,8 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     struct User {
         uint tokenGainedFromSC; // Total Tokens That User Gained From Smart Contract (Reward Pool)
         uint tokenGainedFromMages; // Total Tokens That User Gained From Mages
-        uint[] contributedOrders; // Array Of Orderids That User is Contributed
+        uint[] angelContributedOrders; // Array Of Orderids That User is Contributed as Angel
+        uint[] laboratoryContributedOrders;  // Array Of Orderids That User is Contributed as Hub
         uint[] ownedOrders; // Array Of Order ids That User is Owned
     }
     
@@ -294,7 +295,8 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         orderDataMap[_orderId].laboratoryAddresses.push(_laboratoryAddress);
         orderDataMap[_orderId].isConfirmedByMage.push(false);
         orderDataMap[_orderId].dataRegistrationTime.push(block.timestamp);
-        userMap[_contributorAddress].contributedOrders.push(_orderId);
+        userMap[_contributorAddress].angelContributedOrders.push(_orderId);
+        userMap[_laboratoryAddress].laboratoryContributedOrders.push(_orderId);
         orderDataMap[_orderId].zarelaDay.push(zarelaDayCounter);
 
         emit contributed(_contributorAddress , _laboratoryAddress ,_orderId ,_orderOwner ,zarelaDifficultyOfDay);
@@ -366,15 +368,15 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         uint[]memory _index
     )
         public 
-        onlyRequester (_orderId)
+        onlyRequester(_orderId)
         checkOrderId(_orderId)
     {
         Order storage myorder = orders[_orderId];
         require(_index.length <= myorder.totalContributorsRemain,"The number of entries is more than allowed");
         require(myorder.totalContributorsRemain != 0,"Your Order Is Done, And You Sent All of Rewards to Users");
         myorder.totalContributorsRemain = myorder.totalContributorsRemain - (_index.length);
+        _balances[address(this)] = _balances[address(this)] - ( (myorder.tokenPerContributor + myorder.tokenPerLaboratory) *  _index.length);
         for (uint i;i < _index.length ; i++) {
-            _balances[address(this)] = _balances[address(this)] - (myorder.tokenPerContributor + myorder.tokenPerLaboratory);
             _balances[orderDataMap[_orderId].contributorAddresses[_index[i]]] = _balances[orderDataMap[_orderId].contributorAddresses[_index[i]]] + (myorder.tokenPerContributor);
             _balances[orderDataMap[_orderId].laboratoryAddresses[_index[i]]] = _balances[orderDataMap[_orderId].laboratoryAddresses[_index[i]]] + (myorder.tokenPerLaboratory);
             userMap[orderDataMap[_orderId].contributorAddresses[_index[i]]].tokenGainedFromMages+=(myorder.tokenPerContributor);
@@ -435,11 +437,13 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     function orderResult()
         public view returns
     (uint[]memory _ownedOrders,
-    uint[]memory _contributedOrders)
+    uint[]memory _angelContributedOrders,
+    uint[]memory _laboratoryContributedOrders)
     {
         return (
             userMap[msg.sender].ownedOrders,
-            userMap[msg.sender].contributedOrders
+            userMap[msg.sender].angelContributedOrders,
+            userMap[msg.sender].laboratoryContributedOrders
         );
     }
     
