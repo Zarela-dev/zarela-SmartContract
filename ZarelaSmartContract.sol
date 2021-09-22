@@ -36,7 +36,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     uint public maxUserDailyReward = 50000000000 ; // Max User Daily Reward As BIOBIT + 50 + _decimals 
     uint public totalTokenReleaseDaily = 14400000000000 ; // Total Tokens That Release From Zarela Reward Pool Per Day 
     
-    address payable[] public paymentQueue; // All addresses pending reward (angels or labrotory)
+    address payable[] public paymentQueue; // All addresses pending reward (angels or laboratory)
     uint public halvingCounter; // Halving Counter
     uint public countDown24Hours = block.timestamp; // Starting 24 hours Timer By Block Timestamp (From Deploy Zarela)
     uint public dayCounterOf20Months; // Day Counter Of 20 Months (590 days  =  20 months )
@@ -85,7 +85,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         string[] encryptionKey; // IPFS Hash of  Encrypted AES Secret Key (Stored In IPFS)
         address[] contributorAddresses; // Array Of Contributors addresses
         address[] laboratoryAddresses; // Array Of laboratory addresses
-        bool[] whoGainedReward; // Array Of addresses that Gained the Reward  (true means laboratory and false means angel)
+        bool[] whoGainedReward; // Array Of addresses that Gained the Reward  (true means laboratory and false means angel) ????
         bool[] isConfirmedByMage; // is Confirmed By Mage?
         uint[] zarelaDay; // in Which Zarela Day This Data is Imported
     }
@@ -134,7 +134,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     )
         public
     {
-        require(_balances[msg.sender] >= (_tokenPerContributor * _totalContributors) , "Your Token Is Not Enough");
+        require(_balances[msg.sender] >= ((_tokenPerContributor + _tokenPerLaboratory) * _totalContributors), "Your Token Is Not Enough");
         ERC20.transfer(address(this),((_tokenPerContributor + _tokenPerLaboratory) * _totalContributors));
         uint orderId = orders.length;
         orders.push(
@@ -372,6 +372,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         checkOrderId(_orderId)
     {
         Order storage myorder = orders[_orderId];
+        require(_index.length >= 1,"You Should Select One At Least");
         require(_index.length <= myorder.totalContributorsRemain,"The number of entries is more than allowed");
         require(myorder.totalContributorsRemain != 0,"Your Order Is Done, And You Sent All of Rewards to Users");
         myorder.totalContributorsRemain = myorder.totalContributorsRemain - (_index.length);
@@ -452,11 +453,5 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     function orderSize()
         public view returns (uint){
         return orders.length;
-    }
-    /// @dev Release 100 tokens from reward pool for people visit guide , this function just exist on our testnet 
-    function earnTestToken()public {
-        _balances[address(this)] = _balances[address(this)] - 100000000000;
-        _balances[msg.sender] = _balances[msg.sender] + 100000000000;
-        emit Transfer(address(this) , msg.sender , 100000000000);
     }
 }
