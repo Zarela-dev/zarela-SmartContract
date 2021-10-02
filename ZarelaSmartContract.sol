@@ -73,7 +73,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         string accessPublicKey; // Encryption Owner Public Key 
     }
     
-    struct Category{
+    struct Category {
         string zarelaCategory; // Zarela Category (Hashtags)
         uint businessCategory; // Business Category
     } 
@@ -85,7 +85,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         string[] encryptionKey; // IPFS Hash of  Encrypted AES Secret Key (Stored In IPFS)
         address[] contributorAddresses; // Array Of Contributors addresses
         address[] laboratoryAddresses; // Array Of laboratory addresses
-        bool[] whoGainedReward; // Array Of addresses that Gained the Reward  (true means laboratory and false means angel) ????
+        bool[] whoGainedReward; // Array Of addresses that Gained the Reward  (true means angel and false means laboratory)
         bool[] isConfirmedByMage; // is Confirmed By Mage?
         uint[] zarelaDay; // in Which Zarela Day This Data is Imported
     }
