@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-# SmartContract
-
-### what is zarela?
-Zarela is Decentralized marketplace platform for peer-to-peer transferring of Biosignals.
-
-### #Biobit Smart Contract Address: 0xf67192a8b9f269f23802d9ab94c7875a0abb7aea
-
-[BioBit Token on Etherscan.io](https://etherscan.io/token/0xf67192a8b9f269f23802d9ab94c7875a0abb7aea) 
-=======
 # What is Zarela?
 Zarela is a free, borderless and open-source P2P platform built upon the blockchain technology for collection and delivering human’s biosignals to the researchers and entities demanding for biosignal data.
 
@@ -50,4 +40,3 @@ will be announced soon.
 
 ### License
 This project is licensed under the terms of the [MIT license](/LICENSE).
->>>>>>> b6623afa69c355517be2da3e1cfeaa1a321f8bee
