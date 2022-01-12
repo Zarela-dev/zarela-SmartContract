@@ -36,7 +36,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     uint public maxUserDailyReward = 50000000000 ; // Max User Daily Reward As BIOBIT + 50 + _decimals 
     uint public totalTokenReleaseDaily = 14400000000000 ; // Total Tokens That Release From Zarela Reward Pool Per Day 
     
-    address payable[] public paymentQueue; // All addresses pending reward (angels or labrotory)
+    address payable[] public paymentQueue; // All addresses pending reward (angels or laboratory)
     uint public halvingCounter; // Halving Counter
     uint public countDown24Hours = block.timestamp; // Starting 24 hours Timer By Block Timestamp (From Deploy Zarela)
     uint public dayCounterOf20Months; // Day Counter Of 20 Months (590 days  =  20 months )
@@ -73,7 +73,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         string accessPublicKey; // Encryption Owner Public Key 
     }
     
-    struct Category{
+    struct Category {
         string zarelaCategory; // Zarela Category (Hashtags)
         uint businessCategory; // Business Category
     } 
@@ -85,7 +85,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         string[] encryptionKey; // IPFS Hash of  Encrypted AES Secret Key (Stored In IPFS)
         address[] contributorAddresses; // Array Of Contributors addresses
         address[] laboratoryAddresses; // Array Of laboratory addresses
-        bool[] whoGainedReward; // Array Of addresses that Gained the Reward  (true means laboratory and false means angel)
+        bool[] whoGainedReward; // Array Of addresses that Gained the Reward  (true means angel and false means laboratory)
         bool[] isConfirmedByMage; // is Confirmed By Mage?
         uint[] zarelaDay; // in Which Zarela Day This Data is Imported
     }
@@ -93,7 +93,8 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     struct User {
         uint tokenGainedFromSC; // Total Tokens That User Gained From Smart Contract (Reward Pool)
         uint tokenGainedFromMages; // Total Tokens That User Gained From Mages
-        uint[] contributedOrders; // Array Of Orderids That User is Contributed
+        uint[] angelContributedOrders; // Array Of Orderids That User is Contributed as Angel
+        uint[] laboratoryContributedOrders;  // Array Of Orderids That User is Contributed as Hub
         uint[] ownedOrders; // Array Of Order ids That User is Owned
     }
     
@@ -133,7 +134,7 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     )
         public
     {
-        require(_balances[msg.sender] >= (_tokenPerContributor * _totalContributors) , "Your Token Is Not Enough");
+        require(_balances[msg.sender] >= ((_tokenPerContributor + _tokenPerLaboratory) * _totalContributors), "Your Token Is Not Enough");
         ERC20.transfer(address(this),((_tokenPerContributor + _tokenPerLaboratory) * _totalContributors));
         uint orderId = orders.length;
         orders.push(
@@ -294,7 +295,8 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         orderDataMap[_orderId].laboratoryAddresses.push(_laboratoryAddress);
         orderDataMap[_orderId].isConfirmedByMage.push(false);
         orderDataMap[_orderId].dataRegistrationTime.push(block.timestamp);
-        userMap[_contributorAddress].contributedOrders.push(_orderId);
+        userMap[_contributorAddress].angelContributedOrders.push(_orderId);
+        userMap[_laboratoryAddress].laboratoryContributedOrders.push(_orderId);
         orderDataMap[_orderId].zarelaDay.push(zarelaDayCounter);
 
         emit contributed(_contributorAddress , _laboratoryAddress ,_orderId ,_orderOwner ,zarelaDifficultyOfDay);
@@ -366,15 +368,16 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
         uint[]memory _index
     )
         public 
-        onlyRequester (_orderId)
+        onlyRequester(_orderId)
         checkOrderId(_orderId)
     {
         Order storage myorder = orders[_orderId];
+        require(_index.length >= 1,"You Should Select One At Least");
         require(_index.length <= myorder.totalContributorsRemain,"The number of entries is more than allowed");
         require(myorder.totalContributorsRemain != 0,"Your Order Is Done, And You Sent All of Rewards to Users");
         myorder.totalContributorsRemain = myorder.totalContributorsRemain - (_index.length);
+        _balances[address(this)] = _balances[address(this)] - ( (myorder.tokenPerContributor + myorder.tokenPerLaboratory) *  _index.length);
         for (uint i;i < _index.length ; i++) {
-            _balances[address(this)] = _balances[address(this)] - (myorder.tokenPerContributor + myorder.tokenPerLaboratory);
             _balances[orderDataMap[_orderId].contributorAddresses[_index[i]]] = _balances[orderDataMap[_orderId].contributorAddresses[_index[i]]] + (myorder.tokenPerContributor);
             _balances[orderDataMap[_orderId].laboratoryAddresses[_index[i]]] = _balances[orderDataMap[_orderId].laboratoryAddresses[_index[i]]] + (myorder.tokenPerLaboratory);
             userMap[orderDataMap[_orderId].contributorAddresses[_index[i]]].tokenGainedFromMages+=(myorder.tokenPerContributor);
@@ -435,11 +438,13 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     function orderResult()
         public view returns
     (uint[]memory _ownedOrders,
-    uint[]memory _contributedOrders)
+    uint[]memory _angelContributedOrders,
+    uint[]memory _laboratoryContributedOrders)
     {
         return (
             userMap[msg.sender].ownedOrders,
-            userMap[msg.sender].contributedOrders
+            userMap[msg.sender].angelContributedOrders,
+            userMap[msg.sender].laboratoryContributedOrders
         );
     }
     
@@ -448,11 +453,5 @@ contract ZarelaSmartContract is ERC20 , ERC20Burnable {
     function orderSize()
         public view returns (uint){
         return orders.length;
-    }
-    /// @dev Release 100 tokens from reward pool for people visit guide , this function just exist on our testnet 
-    function earnTestToken()public {
-        _balances[address(this)] = _balances[address(this)] - 100000000000;
-        _balances[msg.sender] = _balances[msg.sender] + 100000000000;
-        emit Transfer(address(this) , msg.sender , 100000000000);
     }
 }
