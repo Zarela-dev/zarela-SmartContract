@@ -24,8 +24,14 @@ npm install -g truffle
 These commands apply to the RPC provider running on port 7545. You may want to have TestRPC running in the background.
 ```
 git clone https://github.com/Zarela-dev/zarela-SmartContract.git
+```
+```
 cd zarela-SmartContract
+```
+```
 truffle compile
+```
+```
 truffle migrate
 ```
 
