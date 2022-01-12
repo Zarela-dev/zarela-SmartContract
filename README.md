@@ -35,8 +35,5 @@ truffle compile
 truffle migrate
 ```
 
-### Bug Bounty:
-will be announced soon.
-
 ### License
 This project is licensed under the terms of the [MIT license](/LICENSE).
