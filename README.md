@@ -1,7 +1,7 @@
 # What is Zarela?
 Zarela is a free, borderless and open-source P2P platform built upon the blockchain technology for collection and delivering human’s biosignals to the researchers and entities demanding for biosignal data.
 
-#####Learn More:
+##### Learn More:
 * [Website](https://zarela.io)
 * [White Paper](https://zarela.io/wp-content/uploads/2021/08/Zarela-white-paper.pdf)
 * [Discord](https://discord.com/invite/z2d975TtAZ)
